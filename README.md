@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Individual Finance
+
+A personal and group finance management platform built with Next.js, featuring transaction recording, goal tracking, obligation management, and deterministic rule-based financial operations.
+
+## Tech Stack
+
+- **Framework:** Next.js 16 (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS + shadcn/ui
+- **Database:** PostgreSQL (Neon) with Prisma ORM
+- **API:** oRPC for type-safe API contracts
+- **Authentication:** Auth.js with JWT sessions
+- **Testing:** Vitest (unit/integration) + Playwright (E2E)
+- **Linting:** Biome
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# Install dependencies
+pnpm install
+
+# Start development server
 pnpm dev
-# or
-bun dev
+
+# Build for production
+pnpm build
+
+# Run tests
+pnpm test
+
+# Run linter
+pnpm lint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Project Structure
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+├── app/                 # Next.js App Router pages
+├── features/            # Feature-sliced UI modules
+├── entities/            # Core domain models
+├── components/          # UI components (shadcn/ui)
+├── shared/              # Shared utilities, configs, types
+├── server/              # oRPC routers, domain services, policies
+├── prisma/              # Database schema and migrations
+└── tests/               # Test files
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Available Commands
 
-## Learn More
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Start development server |
+| `pnpm build` | Build for production |
+| `pnpm start` | Start production server |
+| `pnpm lint` | Run Biome linter |
+| `pnpm test` | Run Vitest tests |
+| `pnpm test:watch` | Run tests in watch mode |
 
-To learn more about Next.js, take a look at the following resources:
+## Environment Variables
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Copy `.env.example` to `.env` and configure:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `DATABASE_URL` - PostgreSQL connection string
+- `AUTH_SECRET` - Auth.js secret key
 
-## Deploy on Vercel
+## License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT License - see [LICENSE](LICENSE) file.
