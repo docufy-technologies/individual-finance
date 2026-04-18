@@ -241,3 +241,14 @@ individual-finance/
 - If a file approaches this limit, split into multiple smaller files and import between them
 - For `app/` routes: create new page components in the same directory instead of adding to existing files
 - This applies to both `.ts/.tsx` source files and route handlers
+
+### File Naming Guidelines
+
+- Do not create files that matches with stories name. Example:
+  - Wrong: `story-1-2-environment-config.specs.ts`
+  - Correct: `environment-config.specs.ts`
+
+### Component Guidelines
+
+- Prefer using shadcn/ui components for consistency, but create custom components in `components/` when needed
+- Create components via `magic mcp` for spinning up creating a modern component.
