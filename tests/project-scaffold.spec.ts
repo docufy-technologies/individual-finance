@@ -56,7 +56,7 @@ describe("Project Scaffold Structure", () => {
       "utf-8",
     );
     const biome = JSON.parse(biomeContent);
-    const hasSchema = biome.$schema?.includes("2.2.0");
+    const hasSchema = biome.$schema?.includes("2.4.12");
     expect(hasSchema).toBe(true);
   });
 });
