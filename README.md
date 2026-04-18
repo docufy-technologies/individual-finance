@@ -12,6 +12,7 @@ A personal and group finance management platform built with Next.js, featuring t
 - **Authentication:** Auth.js with JWT sessions
 - **Testing:** Vitest (unit/integration) + Playwright (E2E)
 - **Linting:** Biome
+- **React Compiler:** Enabled
 
 ## Getting Started
 
@@ -40,7 +41,7 @@ pnpm lint
 ├── entities/            # Core domain models
 ├── components/          # UI components (shadcn/ui)
 ├── shared/              # Shared utilities, configs, types
-├── server/              # oRPC routers, domain services, policies
+├── server/              # Backend services
 ├── prisma/              # Database schema and migrations
 └── tests/               # Test files
 ```
@@ -53,8 +54,11 @@ pnpm lint
 | `pnpm build` | Build for production |
 | `pnpm start` | Start production server |
 | `pnpm lint` | Run Biome linter |
+| `pnpm format` | Format code with Biome |
+| `pnpm type-check` | Run TypeScript type check |
 | `pnpm test` | Run Vitest tests |
 | `pnpm test:watch` | Run tests in watch mode |
+| `pnpm test:e2e` | Run Playwright E2E tests |
 
 ## Environment Variables
 

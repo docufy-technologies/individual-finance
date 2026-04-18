@@ -18,75 +18,173 @@ Project-specific instructions for AI agents working on Individual Finance.
 - Auth.js (JWT sessions)
 - Biome for linting/formatting
 - Vitest + Playwright for testing
+- React Compiler enabled
 
 ## Available Commands
 
-| Command | Description |
-|---------|-------------|
-| `pnpm dev` | Start development server |
-| `pnpm build` | Build for production |
-| `pnpm start` | Start production server |
-| `pnpm lint` | Run Biome linter |
-| `pnpm format` | Format code with Biome |
-| `pnpm test` | Run Vitest tests |
-| `pnpm test:watch` | Run tests in watch mode |
+| Command             | Description               |
+| ------------------- | ------------------------- |
+| `pnpm dev`          | Start development server  |
+| `pnpm build`        | Build for production      |
+| `pnpm start`        | Start production server   |
+| `pnpm lint`         | Run Biome linter          |
+| `pnpm format`       | Format code with Biome    |
+| `pnpm format:check` | Check code formatting     |
+| `pnpm type-check`   | Run TypeScript type check |
+| `pnpm test`         | Run Vitest tests          |
+| `pnpm test:watch`   | Run tests in watch mode   |
+| `pnpm test:e2e`     | Run Playwright E2E tests  |
 
 ## Directory Structure
 
 ```
 individual-finance/
-├── app/                  # Next.js App Router pages
-│   ├── (auth)/          # Auth pages (sign-in, sign-out)
-│   ├── (personal)/      # Personal finance pages
-│   ├── (group)/         # Group finance pages
-│   └── api/             # API routes (auth, orpc, health)
-├── features/            # Feature-sliced UI modules
+├── README.md
+├── AGENTS.md
+├── package.json
+├── pnpm-lock.yaml
+├── next.config.ts
+├── tsconfig.json
+├── biome.json
+├── postcss.config.mjs
+├── playwright.config.ts
+├── .env.example
+├── .gitignore
+├── .github/
+│   └── workflows/
+│       ├── ci.yml
+│       └── quality-gates.yml
+├── app/
+│   ├── globals.css
+│   ├── layout.tsx
+│   ├── page.tsx
+│   ├── (auth)/
+│   │   ├── sign-in/page.tsx
+│   │   └── sign-out/page.tsx
+│   ├── (personal)/
+│   │   ├── dashboard/page.tsx
+│   │   ├── transactions/page.tsx
+│   │   └── goals/page.tsx
+│   ├── (group)/
+│   │   ├── [groupUuid]/page.tsx
+│   │   ├── [groupUuid]/obligations/page.tsx
+│   │   ├── [groupUuid]/goals/page.tsx
+│   │   ├── [groupUuid]/settings/page.tsx
+│   │   └── [groupUuid]/invite/[invitationCode]/page.tsx  # Email link landing for group join
+│   └── api/
+│       ├── auth/[...nextauth]/route.ts
+│       ├── orpc/route.ts
+│       └── health/route.ts
+├── features/
 │   ├── auth/
 │   ├── personal-ledger/
 │   ├── group-ledger/
-│   ├── group-members/
+│   ├── group-members/           # Member invitation, join via email link
 │   ├── obligations/
 │   ├── goals/
-│   ├── policy-management/
+│   ├── policy-management/       # PBAC policy configuration from group settings
 │   └── audit-viewer/
-├── entities/            # Core domain models
+├── entities/
 │   ├── user/
 │   ├── group/
 │   ├── ledger-entry/
 │   ├── obligation/
 │   └── goal/
-├── components/          # UI components
-│   ├── ui/             # shadcn/ui base components
-│   ├── forms/          # TanStack Form composites
+├── components/
+│   ├── ui/                # shadcn base components
+│   ├── forms/             # TanStack Form composites
 │   ├── charts/
 │   └── feedback/
-├── shared/              # Shared utilities
-│   ├── config/         # Environment config, constants
-│   ├── errors/         # Error catalog
-│   ├── lib/            # Money, date, idempotency utilities
-│   ├── query/          # TanStack Query keys
+├── shared/
+│   ├── config/
+│   │   ├── env.ts
+│   │   ├── constants.ts
+│   │   └── feature-flags.ts
+│   ├── errors/
+│   │   ├── error-codes.ts
+│   │   ├── domain-error.ts
+│   │   └── to-client-error.ts
+│   ├── lib/
+│   │   ├── money.ts
+│   │   ├── date.ts
+│   │   ├── idempotency.ts
+│   │   └── trace.ts
+│   ├── query/
+│   │   └── query-keys.ts
 │   └── types/
-├── server/              # Backend services
-│   ├── auth/           # Auth.js config, session, guards
-│   ├── orpc/           # oRPC router, context, middleware
-│   ├── policies/       # PBAC engine and rules
-│   ├── domains/        # Domain services and repositories
-│   └── db/             # Prisma client and transactions
-├── prisma/              # Database schema and migrations
-├── tests/               # Test files
-│   ├── e2e/            # Playwright E2E tests
-│   └── integration/    # Integration tests
-└── docs/                # Documentation
+├── server/
+│   ├── auth/
+│   │   ├── auth.config.ts
+│   │   ├── auth.session.ts
+│   │   └── auth.guards.ts
+│   ├── orpc/
+│   │   ├── router.ts
+│   │   ├── context.ts
+│   │   ├── middleware/
+│   │   │   ├── trace.middleware.ts
+│   │   │   ├── rate-limit.middleware.ts
+│   │   │   ├── idempotency.middleware.ts
+│   │   │   └── error-map.middleware.ts
+│   │   └── contracts/
+│   ├── policies/
+│   │   ├── pbac-engine.ts
+│   │   ├── policy-rules.ts
+│   │   └── permission-checks.ts
+│   ├── domains/
+│   │   ├── user/
+│   │   │   ├── user.service.ts
+│   │   │   ├── user.repository.ts
+│   │   │   ├── user.schema.ts
+│   │   │   └── user.events.ts
+│   │   ├── group/
+│   │   │   ├── group.service.ts
+│   │   │   ├── group.repository.ts
+│   │   │   ├── group.schema.ts
+│   │   │   ├── invitation.service.ts      # Email invitation link generation and validation
+│   │   │   ├── invitation.repository.ts
+│   │   │   └── invitation.schema.ts
+│   │   ├── personal-ledger/
+│   │   ├── group-ledger/
+│   │   ├── obligations/
+│   │   ├── goals/
+│   │   ├── audit/
+│   │   └── settlement/
+│   └── db/
+│       ├── prisma.ts
+│       └── transaction.ts
+├── prisma/
+│   ├── schema.prisma
+│   ├── seed.ts
+│   └── migrations/
+├── public/
+│   └── assets/
+├── tests/
+│   ├── e2e/
+│   │   ├── personal-flow.spec.ts
+│   │   ├── group-emergency-withdraw.spec.ts
+│   │   ├── goal-implementation.spec.ts
+│   │   └── dispute-trace.spec.ts
+│   ├── integration/
+│   │   ├── orpc/
+│   │   ├── policies/
+│   │   └── domains/
+│   └── fixtures/
+└── docs/
+    ├── architecture/
+    ├── api/
+    └── runbooks/
 ```
 
 ## Special Instructions
 
 ### Package Manager
+
 - **Use pnpm only** - npm and yarn are explicitly disallowed
 - Use `pnpm add` for dependencies
 - Use `pnpm remove` to remove dependencies
 
 ### Code Style
+
 - **Linting:** Biome (`pnpm lint`)
 - **Formatting:** Biome (`pnpm format`)
 - Run both before committing
@@ -94,12 +192,14 @@ individual-finance/
 ### Naming Conventions
 
 **Database:**
+
 - Tables: `snake_case`, plural (`users`, `group_members`)
 - Columns: `snake_case` (`created_at`, `updated_at`)
 - Primary keys: `uuid` (UUID type)
 - Foreign keys: `<entity>_uuid` (`user_uuid`, `goal_uuid`)
 
 **Code:**
+
 - Variables/functions: `camelCase`
 - Types/interfaces/classes/components: `PascalCase`
 - Files: `kebab-case.ts` / `kebab-case.tsx`
