@@ -189,6 +189,14 @@ individual-finance/
 - **Formatting:** Biome (`pnpm format`)
 - Run both before committing
 
+### Commenting
+
+- Use JSDoc style comments for all functions/methods, especially in service layer
+- Include `@param` and `@returns` annotations
+- Use double slash syntax for inline comments, but keep them concise and relevant, DON'T USE `/* */` block comments for single line comments
+- Avoid redundant comments that restate what the code does; focus on explaining why, not what
+- For complex business rules, include a brief example in the comment to illustrate the rule in practice
+
 ### Naming Conventions
 
 **Database:**
