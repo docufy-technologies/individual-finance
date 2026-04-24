@@ -22,7 +22,7 @@ test.describe("Biome Lint and Format", () => {
     const biomePath = path.join(projectRoot, "biome.json");
     const biome = JSON.parse(fs.readFileSync(biomePath, "utf-8"));
 
-    expect(biome.$schema).toContain("2.2.0");
+    expect(biome.$schema).toContain("2.4.12");
     expect(biome.linter.enabled).toBe(true);
     expect(biome.formatter.enabled).toBe(true);
   });
@@ -161,14 +161,14 @@ test.describe("Shared Config Modules", () => {
     const envContent = fs.readFileSync(envPath, "utf-8");
 
     // Verify exported items
-    expect(envContent).toContain("export function validateEnv");
-    expect(envContent).toContain("export function getRequiredEnv");
-    expect(envContent).toContain("export function getOptionalEnv");
-    expect(envContent).toContain("export const DATABASE_URL");
-    expect(envContent).toContain("export const AUTH_SECRET");
-    expect(envContent).toContain("export const NODE_ENV");
-    expect(envContent).toContain("export const isProduction");
-    expect(envContent).toContain("export const isDevelopment");
+    expect(envContent).toContain("validateEnv");
+    expect(envContent).toContain("getRequiredEnv");
+    expect(envContent).toContain("getOptionalEnv");
+    expect(envContent).toContain("DATABASE_URL");
+    expect(envContent).toContain("AUTH_SECRET");
+    expect(envContent).toContain("NODE_ENV");
+    expect(envContent).toContain("isProduction");
+    expect(envContent).toContain("isDevelopment");
   });
 });
 

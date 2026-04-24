@@ -40,7 +40,7 @@ test.describe("Project Build Verification", () => {
     const biomePath = path.join(projectRoot, "biome.json");
     const biome = JSON.parse(fs.readFileSync(biomePath, "utf-8"));
 
-    expect(biome.$schema).toContain("2.2.0");
+    expect(biome.$schema).toContain("2.4.12");
   });
 });
 

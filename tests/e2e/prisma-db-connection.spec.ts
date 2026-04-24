@@ -79,7 +79,7 @@ test.describe("AC1: Prisma Configuration with Neon Connection", () => {
     const packageJsonPath = path.join(projectRoot, "package.json");
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
 
-    expect(packageJson.scripts.db).toBe("prisma migrate");
+    expect(packageJson.scripts["db:migrate"]).toBe("prisma migrate");
     expect(packageJson.scripts["db:push"]).toBe("prisma db push");
     expect(packageJson.scripts["db:generate"]).toBe("prisma generate");
     expect(packageJson.scripts["db:studio"]).toBe("prisma studio");
@@ -275,7 +275,7 @@ test.describe("Integration: Prisma Stack Works Together", () => {
     const packageJsonPath = path.join(projectRoot, "package.json");
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
 
-    expect(packageJson.scripts.db).toBe("prisma migrate");
+    expect(packageJson.scripts["db:migrate"]).toBe("prisma migrate");
     expect(packageJson.scripts["db:push"]).toBe("prisma db push");
     expect(packageJson.scripts["db:generate"]).toBe("prisma generate");
     expect(packageJson.scripts["db:studio"]).toBe("prisma studio");

@@ -19,9 +19,15 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        launchOptions: {
+          executablePath: "/usr/bin/chromium", // Uses system Chromium binary; update path if needed
+        },
+      },
     },
-  ],
+  ], // To run other browsers with system binaries, add projects with appropriate executablePath. See docs.
+
   webServer: {
     command: "pnpm dev",
     url: "http://localhost:3000",
