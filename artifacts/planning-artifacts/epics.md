@@ -70,37 +70,38 @@ FR28: The system can enforce return-before-deposit sequencing for users with unr
 FR29: The system can calculate and expose each member's net balance state.
 FR30: The system can apply eligibility rules based on positive or negative net balance states.
 
-**FR31-FR42: Goals, Reserve Management, and Progress Tracking**
+**FR35-FR47: Goals, Reserve Management, and Progress Tracking**
 
-FR31: Group admins can create group goals with target amounts.
-FR32: The system can initialize newly created goals with implemented progress equal to zero.
-FR33: The system can display goal progress as implemented amount versus target amount.
-FR34: Users can reserve money for a specific goal only when at least one goal exists. Reserving blocks the reserved amount from withdrawal and contributes to goal tracking.
-FR35: Group admins can record goal implementation only when at least one goal exists.
-FR36: The system can require goal selection during implementation recording.
-FR37: During implementation, admins can choose reserve source from either members' positive net-balance reserve allocation or goal reserve. One implementation record uses exactly one source—mixing both sources in a single implementation is not allowed.
-FR38: The system can update member available net balances when implementation reserves are sourced from member net balances.
-FR39: The system can update selected goal progress after each implementation event.
-FR40: The system can maintain and expose total reserved-for-goals state.
-FR41: The system can enforce and expose available group funds state derived from deposits and reserves.
-FR42: The system can require goal existence before reserve or implementation actions.
+FR35: Group admins can create group goals with target amounts.
+FR36: The system can initialize newly created goals with implemented progress equal to zero.
+FR37: The system can display goal progress as implemented amount versus target amount.
+FR38: Users can reserve money for a specific goal only when at least one goal exists. Reserving blocks the reserved amount from withdrawal and contributes to goal tracking.
+FR39: Group admins can record goal implementation only when at least one goal exists.
+FR40: The system can require goal selection during implementation recording.
+FR41: During implementation, admins can choose reserve source from either members' positive net-balance reserve allocation or goal reserve. One implementation record uses exactly one source—mixing both sources in a single implementation is not allowed.
+FR42: The system can update member available net balances when implementation reserves are sourced from member net balances.
+FR43: The system can update selected goal progress after each implementation event.
+FR44: The system can maintain and expose total reserved-for-goals state.
+FR45: The system can enforce and expose available group funds state derived from deposits and reserves.
+FR46: The system can require goal existence before reserve or implementation actions.
+FR47: Admin can create reservation for goals by reserving money from members' positive net balances. Reservation is based on each member's lending capacity, calculated as `lending_capacity = net_balance - reserved_money`. Amount is reserved proportionally from each member's lending capacity, capped at their individual lending capacity. If a member's lending capacity is less than their proportional share, the remaining amount is redistributed proportionally among members with remaining capacity.
 
-**FR43-FR48: Explainability, Timeline, and Supportability**
+**FR48-FR53: Explainability, Timeline, and Supportability**
 
-FR43: The system can provide explainable "why this happened" outputs for all balance-impacting group-rule outcomes.
-FR44: The system can expose rule-applied context for allocation, obligation, and reserve outcomes.
-FR45: Users can view obligation timeline states for current and upcoming commitments.
-FR46: Support/admin reviewers can access chronological event views for dispute investigation.
-FR47: The system can provide traceable state transition history for money-impacting operations.
-FR48: The system can surface chronological goal progress timeline updates tied to implementation events. Reserve events pull the progress bar upwards (money collected/saved), while implementation events pull the progress bar downwards (money spent).
+FR48: The system can provide explainable "why this happened" outputs for all balance-impacting group-rule outcomes.
+FR49: The system can expose rule-applied context for allocation, obligation, and reserve outcomes.
+FR50: Users can view obligation timeline states for current and upcoming commitments.
+FR51: Support/admin reviewers can access chronological event views for dispute investigation.
+FR52: The system can provide traceable state transition history for money-impacting operations.
+FR53: The system can surface chronological goal progress timeline updates tied to implementation events. Reserve events pull the progress bar upwards (money collected/saved), while implementation events pull the progress bar downwards (money spent).
 
-**FR49-FR53: Auditability and Operational Traceability**
+**FR54-FR58: Auditability and Operational Traceability**
 
-FR49: The system can generate auditable event logs for every financial state change.
-FR50: The system can capture client-side and server-side logs for each function or method call in critical flows.
-FR51: The system can record step-level success/failure status for traceable execution paths.
-FR52: The system can associate logs across layers using correlation identifiers.
-FR53: Authorized reviewers can retrieve logs and event trails for troubleshooting and verification.
+FR54: The system can generate auditable event logs for every financial state change.
+FR55: The system can capture client-side and server-side logs for each function or method call in critical flows.
+FR56: The system can record step-level success/failure status for traceable execution paths.
+FR57: The system can associate logs across layers using correlation identifiers.
+FR58: Authorized reviewers can retrieve logs and event trails for troubleshooting and verification.
 
 ### NonFunctional Requirements
 
@@ -236,7 +237,13 @@ NFR27: Missing-trace events in critical flows must trigger operational alerting.
 
 **Naming Conventions**
 
-- Database: snake_case, plural (users, group_members, ledger_entries)
+- Database: snake_case, plural
+  - Core entities: users, groups, group_members
+  - Personal ledger: personal_incomes, personal_expenses
+  - Group ledger: group_deposits, group_withdrawals
+  - Goals: personal_goals, group_goals, personal_goal_reservations, group_goal_reservations, personal_goal_implementations, group_goal_implementations
+  - Obligations: over_withdrawal_borrowings, over_withdrawal_settlements
+  - Auth: refresh_tokens
 - Primary keys: uuid (UUID type)
 - Foreign keys: <entity>_uuid (user_uuid, goal_uuid)
 - API: camelCase in contracts, imperative verbs (group.create, ledger.recordExpense)
@@ -294,7 +301,7 @@ This epic covers all personal finance functionality: income/expense tracking wit
 
 ### Epic 4: Group Finance Management
 This epic covers all group financial functionality: group creation, member invitations, deposits, withdrawals, goal creation, member-initiated reserves, admin reserves from members' net balance, goal implementation from reserved money, and goal completion.
-**FRs covered:** FR17-FR22 (deposits, withdrawals, available funds), FR31-FR42 (goals, reserves, implementation)
+**FRs covered:** FR17-FR22 (deposits, withdrawals, available funds), FR35-FR47 (goals, reserves, implementation)
 
 ### Epic 5: Deterministic Rule Engine
 This epic covers the core rule engine that enforces fairness, settlement constraints, and eligibility rules for group finance. All rule outcomes must be deterministic and explainable.
@@ -302,7 +309,7 @@ This epic covers the core rule engine that enforces fairness, settlement constra
 
 ### Epic 6: Explainability, Audit & Observability
 This epic covers all features related to explaining rule outcomes, audit trails, system observability with correlation IDs, and goal progress timeline.
-**FRs covered:** FR43-FR53 (explainability, timeline, audit, logging)
+**FRs covered:** FR48-FR58 (explainability, timeline, audit, logging)
 
 ### Epic 7: UX Design System & UI Components
 This epic covers the implementation of the design system, custom domain components, and accessibility requirements.
@@ -389,7 +396,7 @@ So that the application has a reliable data persistence layer following the arch
 **And** migrations can be run via `pnpm prisma migrate`
 
 **Given** Prisma is configured,
-**When** I create the initial schema with all required entities (User, Group, GroupMember, LedgerEntry, Obligation, Goal)
+**When** I create the initial schema with all required entities (users, groups, group_members, personal_incomes, personal_expenses, group_deposits, group_withdrawals, personal_goals, group_goals, personal_goal_reservations, group_goal_reservations, personal_goal_implementations, group_goal_implementations, over_withdrawal_borrowings, over_withdrawal_settlements, refresh_tokens)
 **Then** the schema follows naming conventions: snake_case tables, uuid primary keys, <entity>_uuid foreign keys
 **And** money fields use floating-point (Decimal) type supporting up to 2 decimal places
 

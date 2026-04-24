@@ -308,12 +308,12 @@ Biome as primary linter/formatter (systemwide preference aligned), plus Next.js 
 ### Naming Patterns
 
 **Database Naming Conventions:**
-- Tables: `snake_case`, plural (`users`, `group_members`, `ledger_entries`)
+- Tables: `snake_case`, plural (`users`, `group_members`, `group_deposits`)
 - Columns: `snake_case` (`created_at`, `updated_at`, `group_uuid`)
 - Primary keys: `uuid` (UUID type field, standardized name across all domain tables)
 - Foreign keys: `<entity>_uuid` (`user_uuid`, `goal_uuid`)
-- Index names: `idx_<table>_<column_list>`
-- Unique constraints: `uq_<table>_<column_list>`
+- Index names: plain field name(s) with purpose comment (e.g., `user_uuid` for filtering, `email` for unique lookup)
+- Unique constraints: inline with column definition (no separate naming convention needed)
 
 **API Naming Conventions (oRPC procedures):**
 - Procedure groups by domain: `auth.*`, `group.*`, `ledger.*`, `goal.*`, `obligation.*`
@@ -370,10 +370,11 @@ Biome as primary linter/formatter (systemwide preference aligned), plus Next.js 
 ### Communication Patterns
 
 **Event System Patterns:**
-- Domain events named: `<domain>.<action>.v1` (`ledger.entry.recorded.v1`)
+- Domain events named: `<domain>.<action>.v1` (`ledger.deposit.recorded.v1`, `goal.implementation.recorded.v1`)
 - Event payload shape:
   - `eventId`, `eventType`, `occurredAt`, `actorUuid`, `traceId`, `data`
 - Version events on breaking payload changes only.
+- Event type names aligned to renamed tables: e.g., `OVER_WITHDRAWAL_BORROWING`, `OVER_WITHDRAWAL_SETTLEMENT`, `GOAL_RESERVE`, `GOAL_IMPLEMENT`
 
 **State Management Patterns:**
 - Server state via TanStack Query
@@ -480,9 +481,9 @@ individual-finance/
 ├── entities/
 │   ├── user/
 │   ├── group/
-│   ├── ledger-entry/
-│   ├── obligation/
-│   └── goal/
+│   ├── ledger-entry/          # Sub-divided into incomes, expenses, deposits, withdrawals per schema
+│   ├── obligation/            # Over-withdrawal borrowings and settlements per schema
+│   └── goal/                 # Personal and group goals with reservations/implementations per schema
 ├── components/
 │   ├── ui/                # shadcn base components
 │   ├── forms/             # TanStack Form composites

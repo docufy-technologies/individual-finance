@@ -67,34 +67,34 @@
 - FR34: Reserving money for a goal reduces the member's lending capacity.
 
 **Goals, Reserve Management, and Progress Tracking:**
-- FR31: Group admins can create group goals with target amounts.
-- FR32: The system can initialize newly created goals with implemented progress equal to zero.
-- FR33: The system can display goal progress as implemented amount versus target amount.
-- FR34: Users can reserve money for a specific goal only when at least one goal exists.
-- FR36: Group admins can record goal implementation only when at least one goal exists.
-- FR37: The system can require goal selection during implementation recording.
-- FR38: Admin can create reservation for goals by reserving money from members' positive net balances.
-- FR39: Reservation is based on each member's lending capacity.
-- FR40: Amount is reserved proportionally from each member's lending capacity, capped at their individual lending capacity.
-- FR41: If a member's lending capacity is less than their proportional share, the remaining amount is redistributed proportionally among members with remaining capacity.
-- FR42: The system can update selected goal progress after each implementation event.
-- FR43: The system can maintain and expose total reserved-for-goals state.
-- FR44: The system can enforce and expose available group funds state derived from deposits and reserves.
+- FR35: Group admins can create group goals with target amounts.
+- FR36: The system can initialize newly created goals with implemented progress equal to zero.
+- FR37: The system can display goal progress as implemented amount versus target amount.
+- FR38: Users can reserve money for a specific goal only when at least one goal exists.
+- FR39: Group admins can record goal implementation only when at least one goal exists.
+- FR40: The system can require goal selection during implementation recording.
+- FR41: Admin can create reservation for goals by reserving money from members' positive net balances.
+- FR42: Reservation is based on each member's lending capacity.
+- FR43: Amount is reserved proportionally from each member's lending capacity, capped at their individual lending capacity.
+- FR44: If a member's lending capacity is less than their proportional share, the remaining amount is redistributed proportionally among members with remaining capacity.
+- FR45: The system can update selected goal progress after each implementation event.
+- FR46: The system can maintain and expose total reserved-for-goals state.
+- FR47: The system can enforce and expose available group funds state derived from deposits and reserves.
 
 **Explainability, Timeline, and Supportability:**
-- FR43: The system can provide explainable "why this happened" outputs for all balance-impacting group-rule outcomes.
-- FR44: The system can expose rule-applied context for allocation, obligation, and reserve outcomes.
-- FR45: Users can view obligation timeline states for current and upcoming commitments.
-- FR46: Support/admin reviewers can access chronological event views for dispute investigation.
-- FR47: The system can provide traceable state transition history for money-impacting operations.
-- FR48: The system can surface chronological goal progress timeline updates tied to implementation events.
+- FR48: The system can provide explainable "why this happened" outputs for all balance-impacting group-rule outcomes.
+- FR49: The system can expose rule-applied context for allocation, obligation, and reserve outcomes.
+- FR50: Users can view obligation timeline states for current and upcoming commitments.
+- FR51: Support/admin reviewers can access chronological event views for dispute investigation.
+- FR52: The system can provide traceable state transition history for money-impacting operations.
+- FR53: The system can surface chronological goal progress timeline updates tied to implementation events.
 
 **Auditability and Operational Traceability:**
-- FR49: The system can generate auditable event logs for every financial state change.
-- FR50: The system can capture client-side and server-side logs for each function or method call in critical flows.
-- FR51: The system can record step-level success/failure status for traceable execution paths.
-- FR52: The system can associate logs across layers using correlation identifiers.
-- FR53: Authorized reviewers can retrieve logs and event trails for troubleshooting and verification.
+- FR54: The system can generate auditable event logs for every financial state change.
+- FR55: The system can capture client-side and server-side logs for each function or method call in critical flows.
+- FR56: The system can record step-level success/failure status for traceable execution paths.
+- FR57: The system can associate logs across layers using correlation identifiers.
+- FR58: Authorized reviewers can retrieve logs and event trails for troubleshooting and verification.
 
 **Total FRs: 53+**
 
