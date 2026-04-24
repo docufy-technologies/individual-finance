@@ -5,7 +5,7 @@
  * Missing required variables cause immediate failure with descriptive error messages.
  */
 
-const REQUIRED_ENV_VARS = ["DATABASE_URL", "AUTH_SECRET"] as const;
+const REQUIRED_ENV_VARS = ["DATABASE_URL", "DIRECT_URL", "AUTH_SECRET"] as const;
 
 type RequiredEnvVar = (typeof REQUIRED_ENV_VARS)[number];
 
@@ -76,6 +76,16 @@ export function getDatabaseUrl(): string {
 }
 
 export { getDatabaseUrl as DATABASE_URL };
+
+/**
+ * Direct database connection string for Prisma CLI operations
+ * @throws Error if DIRECT_URL is not set
+ */
+export function getDirectUrl(): string {
+  return getRequiredEnv("DIRECT_URL");
+}
+
+export { getDirectUrl as DIRECT_URL };
 
 /**
  * Auth.js secret for JWT session signing

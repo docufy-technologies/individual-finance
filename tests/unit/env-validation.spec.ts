@@ -11,6 +11,7 @@ import {
   getRequiredEnv,
   getOptionalEnv,
   getDatabaseUrl,
+  getDirectUrl,
   getAuthSecret,
   NODE_ENV,
   LOG_LEVEL,
@@ -48,6 +49,20 @@ describe("getAuthSecret", () => {
   });
 });
 
+describe("getDirectUrl", () => {
+  it("should return value when DIRECT_URL is set", () => {
+    vi.stubEnv("DIRECT_URL", "postgresql://localhost:5432/direct-db");
+
+    expect(getDirectUrl()).toBe("postgresql://localhost:5432/direct-db");
+  });
+
+  it("should throw when DIRECT_URL is not set", () => {
+    vi.stubEnv("DIRECT_URL", "");
+
+    expect(() => getDirectUrl()).toThrow();
+  });
+});
+
 describe("validateEnv", () => {
   beforeEach(() => {
     vi.resetAllMocks();
@@ -55,6 +70,7 @@ describe("validateEnv", () => {
 
   it("should pass when all required env vars are present", () => {
     vi.stubEnv("DATABASE_URL", "postgresql://localhost:5432/db");
+    vi.stubEnv("DIRECT_URL", "postgresql://localhost:5432/direct-db");
     vi.stubEnv("AUTH_SECRET", "test-secret");
 
     expect(() => validateEnv()).not.toThrow();
@@ -62,6 +78,15 @@ describe("validateEnv", () => {
 
   it("should throw EnvValidationError when DATABASE_URL is missing", () => {
     vi.stubEnv("DATABASE_URL", "");
+    vi.stubEnv("DIRECT_URL", "postgresql://localhost:5432/direct-db");
+    vi.stubEnv("AUTH_SECRET", "test-secret");
+
+    expect(() => validateEnv()).toThrow(EnvValidationError);
+  });
+
+  it("should throw EnvValidationError when DIRECT_URL is missing", () => {
+    vi.stubEnv("DATABASE_URL", "postgresql://localhost:5432/db");
+    vi.stubEnv("DIRECT_URL", "");
     vi.stubEnv("AUTH_SECRET", "test-secret");
 
     expect(() => validateEnv()).toThrow(EnvValidationError);
@@ -69,6 +94,7 @@ describe("validateEnv", () => {
 
   it("should throw EnvValidationError when AUTH_SECRET is missing", () => {
     vi.stubEnv("DATABASE_URL", "postgresql://localhost:5432/db");
+    vi.stubEnv("DIRECT_URL", "postgresql://localhost:5432/direct-db");
     vi.stubEnv("AUTH_SECRET", "");
 
     expect(() => validateEnv()).toThrow(EnvValidationError);
@@ -76,6 +102,7 @@ describe("validateEnv", () => {
 
   it("should throw EnvValidationError when both are missing", () => {
     vi.stubEnv("DATABASE_URL", "");
+    vi.stubEnv("DIRECT_URL", "");
     vi.stubEnv("AUTH_SECRET", "");
 
     expect(() => validateEnv()).toThrow(EnvValidationError);
@@ -115,6 +142,7 @@ describe("getOptionalEnv", () => {
 describe("exported getters", () => {
   beforeEach(() => {
     vi.stubEnv("DATABASE_URL", "postgresql://localhost:5432/db");
+    vi.stubEnv("DIRECT_URL", "postgresql://localhost:5432/direct-db");
     vi.stubEnv("AUTH_SECRET", "test-secret");
     vi.stubEnv("NODE_ENV", "test");
     vi.stubEnv("LOG_LEVEL", "debug");
@@ -126,6 +154,10 @@ describe("exported getters", () => {
 
   it("should export getAuthSecret function", () => {
     expect(getAuthSecret()).toBe("test-secret");
+  });
+
+  it("should export getDirectUrl function", () => {
+    expect(getDirectUrl()).toBe("postgresql://localhost:5432/direct-db");
   });
 
   it("should export NODE_ENV", () => {

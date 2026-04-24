@@ -1,0 +1,468 @@
+// =============================================================================
+// DATABASE CHECK CONSTRAINTS (to be applied via raw SQL in migration)
+// =============================================================================
+// Prisma does not support inline CHECK constraints. Apply these via raw SQL:
+//
+// -- Monetary fields CHECK (amount > 0)
+// ALTER TABLE "personal_incomes" ADD CONSTRAINT "personal_incomes_amount_check" CHECK ("amount" > 0);
+// ALTER TABLE "personal_expenses" ADD CONSTRAINT "personal_expenses_amount_check" CHECK ("amount" > 0);
+// ALTER TABLE "personal_goals" ADD CONSTRAINT "personal_goals_target_amount_check" CHECK ("target_amount" > 0);
+// ALTER TABLE "personal_goal_reservations" ADD CONSTRAINT "personal_goal_reservations_amount_check" CHECK ("amount" > 0);
+// ALTER TABLE "personal_goal_implementations" ADD CONSTRAINT "personal_goal_implementations_amount_check" CHECK ("amount" > 0);
+// ALTER TABLE "personal_loans" ADD CONSTRAINT "personal_loans_principal_amount_check" CHECK ("principal_amount" > 0);
+// ALTER TABLE "personal_lends" ADD CONSTRAINT "personal_lends_principal_amount_check" CHECK ("principal_amount" > 0);
+// ALTER TABLE "personal_loan_repayments" ADD CONSTRAINT "personal_loan_repayments_amount_check" CHECK ("amount" > 0);
+// ALTER TABLE "personal_lend_repayments" ADD CONSTRAINT "personal_lend_repayments_amount_check" CHECK ("amount" > 0);
+// ALTER TABLE "group_deposits" ADD CONSTRAINT "group_deposits_amount_check" CHECK ("amount" > 0);
+// ALTER TABLE "group_withdrawals" ADD CONSTRAINT "group_withdrawals_amount_check" CHECK ("amount" > 0);
+// ALTER TABLE "group_goals" ADD CONSTRAINT "group_goals_target_amount_check" CHECK ("target_amount" > 0);
+// ALTER TABLE "group_goal_reservations" ADD CONSTRAINT "group_goal_reservations_amount_check" CHECK ("amount" > 0);
+// ALTER TABLE "group_goal_implementations" ADD CONSTRAINT "group_goal_implementations_amount_check" CHECK ("amount" > 0);
+// ALTER TABLE "over_withdrawal_borrowings" ADD CONSTRAINT "over_withdrawal_borrowings_amount_check" CHECK ("amount" > 0);
+//
+// -- Status enum CHECK
+// ALTER TABLE "personal_loans" ADD CONSTRAINT "personal_loans_status_check" CHECK ("status" IN ('active', 'settled', 'written_off'));
+// ALTER TABLE "personal_lends" ADD CONSTRAINT "personal_lends_status_check" CHECK ("status" IN ('active', 'settled', 'written_off'));
+// ALTER TABLE "group_withdrawals" ADD CONSTRAINT "group_withdrawals_type_check" CHECK ("type" IN ('withdrawal', 'over_withdrawal'));
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  uuid              String             @id @default(uuid()) @db.Uuid
+  email             String             @unique
+  fullName          String             @map("full_name")
+  passwordHash      String?            @map("password_hash")
+  incomeCategories  String             @default("") @map("income_categories")
+  expenseCategories String             @default("") @map("expense_categories")
+  goalCategories    String             @default("") @map("goal_categories")
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  isViable          Boolean            @default(true) @map("is_viable")
+  auditEvents       AuditEvent[]
+  createdGroups     Group[]            @relation("GroupCreator")
+  groupInvitations  GroupInvitation[]  @relation("InvitationCreator")
+  groupMembers      GroupMember[]
+  personalExpenses  PersonalExpense[]
+  personalGoals     PersonalGoal[]
+  personalGoalImplementations PersonalGoalImplementation[]
+  personalGoalReservations   PersonalGoalReservation[]
+  personalIncomes            PersonalIncome[]
+  personalLends              PersonalLend[]
+  personalLoans              PersonalLoan[]
+  refreshTokens              RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  uuid      String   @id @default(uuid()) @db.Uuid
+  userUuid  String   @map("user_uuid") @db.Uuid
+  tokenHash String   @unique @map("token_hash")
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user      User     @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
+
+  @@index([userUuid])
+  @@map("refresh_tokens")
+}
+
+model Group {
+  uuid                     String                    @id @default(uuid()) @db.Uuid
+  name                     String
+  creatorUuid              String                    @map("creator_uuid") @db.Uuid
+  createdAt                DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  isViable                 Boolean                   @default(true) @map("is_viable")
+  auditEvents              AuditEvent[]
+  creator                  User                      @relation("GroupCreator", fields: [creatorUuid], references: [uuid], onDelete: Restrict)
+  deposits                 GroupDeposit[]
+  goalImplementations      GroupGoalImplementation[]
+  goalReservations         GroupGoalReservation[]
+  goals                    GroupGoal[]
+  invitations              GroupInvitation[]
+  memberPermissions        GroupMemberPermission[]
+  members                  GroupMember[]
+  overWithdrawalBorrowings OverWithdrawalBorrowing[]
+  withdrawals              GroupWithdrawal[]
+
+  @@index([creatorUuid])
+  @@map("groups")
+}
+
+model GroupMember {
+  uuid                    String                    @id @default(uuid()) @db.Uuid
+  groupUuid               String                    @map("group_uuid") @db.Uuid
+  userUuid                String                    @map("user_uuid") @db.Uuid
+  joinedAt                DateTime                  @default(now()) @map("joined_at") @db.Timestamptz(6)
+  isViable                Boolean                   @default(true) @map("is_viable")
+  deposits                GroupDeposit[]
+  goalImplementations     GroupGoalImplementation[]
+  goalReservations        GroupGoalReservation[]
+  group                   Group                     @relation(fields: [groupUuid], references: [uuid], onDelete: Cascade)
+  permissions             GroupMemberPermission[]
+  user                    User                      @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
+  borrowingsAsBorrower    OverWithdrawalBorrowing[] @relation("BorrowerMember")
+  borrowingsAsLender      OverWithdrawalBorrowing[] @relation("LenderMember")
+  withdrawals             GroupWithdrawal[]
+
+  @@unique([groupUuid, userUuid])
+  @@index([groupUuid])
+  @@index([userUuid])
+  @@map("group_members")
+}
+
+model GroupMemberPermission {
+  uuid                 String      @id @default(uuid()) @db.Uuid
+  memberUuid           String      @map("member_uuid") @db.Uuid
+  groupUuid            String      @map("group_uuid") @db.Uuid
+  canReserveForGoal    Boolean     @default(false) @map("can_reserve_for_goal")
+  canImplementGoal     Boolean     @default(false) @map("can_implement_goal")
+  canUpdatePermissions Boolean     @default(false) @map("can_update_permissions")
+  group                Group       @relation(fields: [groupUuid], references: [uuid], onDelete: Cascade)
+  member               GroupMember @relation(fields: [memberUuid], references: [uuid], onDelete: Cascade)
+
+  @@unique([memberUuid, groupUuid])
+  @@index([memberUuid])
+  @@index([groupUuid])
+  @@map("group_member_permissions")
+}
+
+model GroupInvitation {
+  uuid           String    @id @default(uuid()) @db.Uuid
+  groupUuid      String    @map("group_uuid") @db.Uuid
+  invitedEmail   String    @map("invited_email")
+  invitationCode String    @unique @map("invitation_code")
+  expiresAt      DateTime  @map("expires_at") @db.Timestamptz(6)
+  acceptedAt     DateTime? @map("accepted_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  creatorUuid    String    @map("creator_uuid") @db.Uuid
+  creator        User      @relation("InvitationCreator", fields: [creatorUuid], references: [uuid], onDelete: Restrict)
+  group          Group     @relation(fields: [groupUuid], references: [uuid], onDelete: Cascade)
+
+  @@index([groupUuid])
+  @@map("group_invitations")
+}
+
+model PersonalIncome {
+  uuid           String   @id @default(uuid()) @db.Uuid
+  userUuid       String   @map("user_uuid") @db.Uuid
+  category       String
+  amount         Decimal  @db.Decimal(19, 2)
+  description    String?
+  transactionRef String?  @map("transaction_ref")
+  incomeDate     DateTime @map("income_date") @db.Timestamptz(6)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user           User     @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
+
+  @@index([userUuid])
+  @@index([incomeDate])
+  @@map("personal_incomes")
+}
+
+model PersonalExpense {
+  uuid           String   @id @default(uuid()) @db.Uuid
+  userUuid       String   @map("user_uuid") @db.Uuid
+  category       String
+  amount         Decimal  @db.Decimal(19, 2)
+  description    String?
+  transactionRef String?  @map("transaction_ref")
+  expenseDate    DateTime @map("expense_date") @db.Timestamptz(6)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user           User     @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
+
+  @@index([userUuid])
+  @@index([expenseDate])
+  @@map("personal_expenses")
+}
+
+model PersonalGoal {
+  uuid                    String                       @id @default(uuid()) @db.Uuid
+  userUuid                String                       @map("user_uuid") @db.Uuid
+  name                    String
+  category                String
+  description             String?
+  targetAmount            Decimal                      @map("target_amount") @db.Decimal(19, 2)
+  implementedAmount       Decimal                      @default(0) @map("implemented_amount") @db.Decimal(19, 2)
+  reservedTotal           Decimal                      @default(0) @map("reserved_total") @db.Decimal(19, 2)
+  isCompleted             Boolean                      @default(false) @map("is_completed")
+  deadline                DateTime?                    @db.Timestamptz(6)
+  createdAt               DateTime                     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime                     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  isViable                Boolean                      @default(true) @map("is_viable")
+  implementations         PersonalGoalImplementation[]
+  reservations            PersonalGoalReservation[]
+  user                    User                         @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
+
+  @@index([userUuid])
+  @@map("personal_goals")
+}
+
+model PersonalGoalReservation {
+  uuid           String       @id @default(uuid()) @db.Uuid
+  goalUuid       String       @map("goal_uuid") @db.Uuid
+  userUuid       String       @map("user_uuid") @db.Uuid
+  amount         Decimal      @db.Decimal(19, 2)
+  transactionRef String?      @map("transaction_ref")
+  reservedAt     DateTime     @default(now()) @map("reserved_at") @db.Timestamptz(6)
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  goal           PersonalGoal @relation(fields: [goalUuid], references: [uuid], onDelete: Cascade)
+  user           User         @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
+
+  @@index([goalUuid])
+  @@index([userUuid])
+  @@map("personal_goal_reservations")
+}
+
+model PersonalGoalImplementation {
+  uuid           String       @id @default(uuid()) @db.Uuid
+  goalUuid       String       @map("goal_uuid") @db.Uuid
+  userUuid       String       @map("user_uuid") @db.Uuid
+  amount         Decimal      @db.Decimal(19, 2)
+  transactionRef String?      @map("transaction_ref")
+  implementedAt  DateTime     @default(now()) @map("implemented_at") @db.Timestamptz(6)
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  goal           PersonalGoal @relation(fields: [goalUuid], references: [uuid], onDelete: Cascade)
+  user           User         @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
+
+  @@index([goalUuid])
+  @@index([userUuid])
+  @@map("personal_goal_implementations")
+}
+
+model PersonalLoan {
+  uuid                String                  @id @default(uuid()) @db.Uuid
+  userUuid            String                  @map("user_uuid") @db.Uuid
+  lenderDescription   String                  @map("lender_description")
+  principalAmount     Decimal                 @map("principal_amount") @db.Decimal(19, 2)
+  interestRate        Decimal                 @default(0) @map("interest_rate") @db.Decimal(5, 4)
+  currency            String                  @default("BDT")
+  startedAt           DateTime                @default(now()) @map("started_at") @db.Timestamptz(6)
+  dueAt               DateTime?               @map("due_at") @db.Timestamptz(6)
+  status              String
+  transactionRef      String?                 @map("transaction_ref")
+  createdAt           DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
+  isViable            Boolean                 @default(true) @map("is_viable")
+  repayments          PersonalLoanRepayment[]
+  user                User                    @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
+
+  @@index([userUuid])
+  @@index([status])
+  @@map("personal_loans")
+}
+
+model PersonalLoanRepayment {
+  uuid           String       @id @default(uuid()) @db.Uuid
+  loanUuid       String       @map("loan_uuid") @db.Uuid
+  amount         Decimal      @db.Decimal(19, 2)
+  paidAt         DateTime     @default(now()) @map("paid_at") @db.Timestamptz(6)
+  transactionRef String?      @map("transaction_ref")
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  loan           PersonalLoan @relation(fields: [loanUuid], references: [uuid], onDelete: Cascade)
+
+  @@index([loanUuid])
+  @@map("personal_loan_repayments")
+}
+
+model PersonalLend {
+  uuid                String                  @id @default(uuid()) @db.Uuid
+  userUuid            String                  @map("user_uuid") @db.Uuid
+  borrowerDescription String                  @map("borrower_description")
+  principalAmount     Decimal                 @map("principal_amount") @db.Decimal(19, 2)
+  interestRate        Decimal                 @default(0) @map("interest_rate") @db.Decimal(5, 4)
+  currency            String                  @default("BDT")
+  startedAt           DateTime                @default(now()) @map("started_at") @db.Timestamptz(6)
+  dueAt               DateTime?               @map("due_at") @db.Timestamptz(6)
+  status              String
+  transactionRef      String?                 @map("transaction_ref")
+  createdAt           DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
+  isViable            Boolean                 @default(true) @map("is_viable")
+  repayments          PersonalLendRepayment[]
+  user                User                    @relation(fields: [userUuid], references: [uuid], onDelete: Cascade)
+
+  @@index([userUuid])
+  @@index([status])
+  @@map("personal_lends")
+}
+
+model PersonalLendRepayment {
+  uuid           String       @id @default(uuid()) @db.Uuid
+  lendUuid       String       @map("lend_uuid") @db.Uuid
+  amount         Decimal      @db.Decimal(19, 2)
+  paidAt         DateTime     @default(now()) @map("paid_at") @db.Timestamptz(6)
+  transactionRef String?      @map("transaction_ref")
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  lend           PersonalLend @relation(fields: [lendUuid], references: [uuid], onDelete: Cascade)
+
+  @@index([lendUuid])
+  @@map("personal_lend_repayments")
+}
+
+model GroupDeposit {
+  uuid           String      @id @default(uuid()) @db.Uuid
+  groupUuid      String      @map("group_uuid") @db.Uuid
+  memberUuid     String      @map("member_uuid") @db.Uuid
+  amount         Decimal     @db.Decimal(19, 2)
+  description    String?
+  transactionRef String?     @map("transaction_ref")
+  depositedAt    DateTime    @default(now()) @map("deposited_at") @db.Timestamptz(6)
+  createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  group          Group       @relation(fields: [groupUuid], references: [uuid], onDelete: Cascade)
+  member         GroupMember @relation(fields: [memberUuid], references: [uuid], onDelete: Restrict)
+
+  @@index([groupUuid])
+  @@index([depositedAt])
+  @@index([memberUuid])
+  @@map("group_deposits")
+}
+
+model GroupWithdrawal {
+  uuid           String                     @id @default(uuid()) @db.Uuid
+  groupUuid      String                     @map("group_uuid") @db.Uuid
+  memberUuid     String                     @map("member_uuid") @db.Uuid
+  amount         Decimal                    @db.Decimal(19, 2)
+  type           String
+  description    String?
+  transactionRef String?                    @map("transaction_ref")
+  withdrawnAt    DateTime                   @default(now()) @map("withdrawn_at") @db.Timestamptz(6)
+  createdAt      DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(6)
+  borrowings     OverWithdrawalBorrowing[]
+  group          Group                      @relation(fields: [groupUuid], references: [uuid], onDelete: Cascade)
+  member         GroupMember                @relation(fields: [memberUuid], references: [uuid], onDelete: Restrict)
+
+  @@index([groupUuid])
+  @@index([withdrawnAt])
+  @@index([memberUuid])
+  @@map("group_withdrawals")
+}
+
+model GroupGoal {
+  uuid                String                    @id @default(uuid()) @db.Uuid
+  groupUuid           String                    @map("group_uuid") @db.Uuid
+  name                String
+  targetAmount        Decimal                   @map("target_amount") @db.Decimal(19, 2)
+  implementedAmount   Decimal                   @default(0) @map("implemented_amount") @db.Decimal(19, 2)
+  reservedTotal       Decimal                   @default(0) @map("reserved_total") @db.Decimal(19, 2)
+  isCompleted         Boolean                   @default(false) @map("is_completed")
+  deadline            DateTime?                 @db.Timestamptz(6)
+  createdAt           DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  isViable            Boolean                   @default(true) @map("is_viable")
+  group               Group                     @relation(fields: [groupUuid], references: [uuid], onDelete: Cascade)
+  implementations     GroupGoalImplementation[]
+  reservations        GroupGoalReservation[]
+
+  @@index([groupUuid])
+  @@map("group_goals")
+}
+
+model GroupGoalReservation {
+  uuid           String      @id @default(uuid()) @db.Uuid
+  groupGoalUuid  String      @map("group_goal_uuid") @db.Uuid
+  groupUuid      String      @map("group_uuid") @db.Uuid
+  memberUuid     String      @map("member_uuid") @db.Uuid
+  amount         Decimal     @db.Decimal(19, 2)
+  transactionRef String?     @map("transaction_ref")
+  reservedAt     DateTime    @default(now()) @map("reserved_at") @db.Timestamptz(6)
+  createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  group          Group       @relation(fields: [groupUuid], references: [uuid], onDelete: Cascade)
+  groupGoal      GroupGoal   @relation(fields: [groupGoalUuid], references: [uuid], onDelete: Cascade)
+  member         GroupMember @relation(fields: [memberUuid], references: [uuid], onDelete: Restrict)
+
+  @@index([groupGoalUuid])
+  @@index([groupUuid])
+  @@index([memberUuid])
+  @@map("group_goal_reservations")
+}
+
+model GroupGoalImplementation {
+  uuid           String      @id @default(uuid()) @db.Uuid
+  groupGoalUuid  String      @map("group_goal_uuid") @db.Uuid
+  groupUuid      String      @map("group_uuid") @db.Uuid
+  memberUuid     String      @map("member_uuid") @db.Uuid
+  amount         Decimal     @db.Decimal(19, 2)
+  transactionRef String?     @map("transaction_ref")
+  implementedAt  DateTime    @default(now()) @map("implemented_at") @db.Timestamptz(6)
+  createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  group          Group       @relation(fields: [groupUuid], references: [uuid], onDelete: Cascade)
+  groupGoal      GroupGoal   @relation(fields: [groupGoalUuid], references: [uuid], onDelete: Cascade)
+  member         GroupMember @relation(fields: [memberUuid], references: [uuid], onDelete: Restrict)
+
+  @@index([groupGoalUuid])
+  @@index([groupUuid])
+  @@index([memberUuid])
+  @@map("group_goal_implementations")
+}
+
+model OverWithdrawalBorrowing {
+  uuid               String                      @id @default(uuid()) @db.Uuid
+  groupUuid          String                      @map("group_uuid") @db.Uuid
+  borrowerMemberUuid String                      @map("borrower_member_uuid") @db.Uuid
+  lenderMemberUuid   String                      @map("lender_member_uuid") @db.Uuid
+  withdrawalUuid     String                      @map("withdrawal_uuid") @db.Uuid
+  amount             Decimal                     @db.Decimal(19, 2)
+  status             String
+  returnedAt         DateTime?                   @map("returned_at") @db.Timestamptz(6)
+  createdAt          DateTime                    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime                    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  settledAt          DateTime?                   @map("settled_at") @db.Timestamptz(6)
+  borrowerMember     GroupMember                 @relation("BorrowerMember", fields: [borrowerMemberUuid], references: [uuid], onDelete: Restrict)
+  group              Group                       @relation(fields: [groupUuid], references: [uuid], onDelete: Cascade)
+  lenderMember       GroupMember                 @relation("LenderMember", fields: [lenderMemberUuid], references: [uuid], onDelete: Restrict)
+  settlements        OverWithdrawalSettlement[]
+  withdrawal         GroupWithdrawal             @relation(fields: [withdrawalUuid], references: [uuid], onDelete: Restrict)
+
+  @@index([groupUuid])
+  @@index([borrowerMemberUuid])
+  @@index([lenderMemberUuid])
+  @@index([withdrawalUuid])
+  @@index([status])
+  @@map("over_withdrawal_borrowings")
+}
+
+model OverWithdrawalSettlement {
+  uuid           String                    @id @default(uuid()) @db.Uuid
+  borrowingUuid  String                    @map("borrowing_uuid") @db.Uuid
+  amount         Decimal                   @db.Decimal(19, 2)
+  paidAt         DateTime                  @default(now()) @map("paid_at") @db.Timestamptz(6)
+  transactionRef String?                   @map("transaction_ref")
+  createdAt      DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  borrowing      OverWithdrawalBorrowing   @relation(fields: [borrowingUuid], references: [uuid], onDelete: Cascade)
+
+  @@index([borrowingUuid])
+  @@map("over_withdrawal_settlements")
+}
+
+model AuditEvent {
+  uuid       String    @id @default(uuid()) @db.Uuid
+  groupUuid  String?   @map("group_uuid") @db.Uuid
+  userUuid   String?   @map("user_uuid") @db.Uuid
+  eventType  String    @map("event_type")
+  entityType String    @map("entity_type")
+  entityUuid String    @map("entity_uuid") @db.Uuid
+  traceId    String    @map("trace_id")
+  payload    Json      @db.JsonB
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  group      Group?    @relation(fields: [groupUuid], references: [uuid], onDelete: SetNull)
+  user       User?     @relation(fields: [userUuid], references: [uuid], onDelete: SetNull)
+
+  @@index([groupUuid])
+  @@index([entityUuid])
+  @@index([traceId])
+  @@index([createdAt])
+  @@index([eventType])
+  @@map("audit_events")
+}
