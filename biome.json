@@ -8,13 +8,20 @@
   "files": {
     "ignoreUnknown": false,
     "includes": [
-      "src/**/*.{ts,tsx,js,jsx,html,json,css}",
-      "index.html",
-      "vite.config.ts",
+      "app/**/*.{ts,tsx,js,jsx,json,css}",
+      "server/**/*.{ts,tsx,js,jsx,json}",
+      "shared/**/*.{ts,tsx,js,jsx,json}",
+      "components/**/*.{ts,tsx,js,jsx}",
+      "features/**/*.{ts,tsx,js,jsx}",
+      "entities/**/*.{ts,tsx,js,jsx}",
+      "tests/**/*.{ts,tsx,js,jsx}",
+      "prisma/**/*.{ts,prisma}",
+      "middleware.ts",
+      "vitest.config.ts",
+      "next.config.ts",
       "tsconfig*.json",
-      "!**/src/route-tree.gen.ts",
-      "!dist",
-      "!node_modules"
+      "!node_modules",
+      "!dist"
     ]
   },
   "formatter": {

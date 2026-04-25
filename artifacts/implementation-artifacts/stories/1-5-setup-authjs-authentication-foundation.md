@@ -1,6 +1,6 @@
 # Story 1.5: Setup Auth.js Authentication Foundation
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -45,32 +45,32 @@ so that the application has secure session management following the architecture
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Install Auth.js dependencies (AC1)
-  - [ ] Subtask 1.1: Add `next-auth` package using pnpm, aligned with architecture version
-  - [ ] Subtask 1.2: Add any required Auth.js adapters or utilities for JWT handling
+- [x] Task 1: Install Auth.js dependencies (AC1)
+  - [x] Subtask 1.1: Add `next-auth` package using pnpm, aligned with architecture version
+  - [x] Subtask 1.2: Add any required Auth.js adapters or utilities for JWT handling
 
-- [ ] Task 2: Create Auth.js route handler (AC1)
-  - [ ] Subtask 2.1: Create `app/api/auth/[...nextauth]/route.ts` with JWT configuration
-  - [ ] Subtask 2.2: Configure JWT strategy with proper secret and signing keys
-  - [ ] Subtask 2.3: Set token lifetime configuration (short access, long refresh)
+- [x] Task 2: Create Auth.js route handler (AC1)
+  - [x] Subtask 2.1: Create `app/api/auth/[...nextauth]/route.ts` with JWT configuration
+  - [x] Subtask 2.2: Configure JWT strategy with proper secret and signing keys
+  - [x] Subtask 2.3: Set token lifetime configuration (short access, long refresh)
 
-- [ ] Task 3: Configure token refresh mechanism (AC2)
-  - [ ] Subtask 3.1: Implement automatic token refresh on expiration
-  - [ ] Subtask 3.2: Implement refresh token rotation on each refresh
-  - [ ] Subtask 3.3: Store refresh tokens in database with proper hashing
+- [x] Task 3: Configure token refresh mechanism (AC2)
+  - [x] Subtask 3.1: Implement automatic token refresh on expiration
+  - [x] Subtask 3.2: Implement refresh token rotation on each refresh
+  - [x] Subtask 3.3: Store refresh tokens in database with proper hashing
 
-- [ ] Task 4: Create authentication guards (AC3)
-  - [ ] Subtask 4.1: Create server-side auth guard utilities in `server/auth/`
-  - [ ] Subtask 4.2: Create session retrieval utilities for protected procedures
-  - [ ] Subtask 4.3: Create middleware for protected route handling
+- [x] Task 4: Create authentication guards (AC3)
+  - [x] Subtask 4.1: Create server-side auth guard utilities in `server/auth/`
+  - [x] Subtask 4.2: Create session retrieval utilities for protected procedures
+  - [x] Subtask 4.3: Create middleware for protected route handling
 
-- [ ] Task 5: Implement sign-in and sign-out pages (AC4)
-  - [ ] Subtask 5.1: Create sign-in page at `app/(auth)/sign-in/page.tsx`
-  - [ ] Subtask 5.2: Create sign-out page at `app/(auth)/sign-out/page.tsx`
+- [x] Task 5: Implement sign-in and sign-out pages (AC4)
+  - [x] Subtask 5.1: Create sign-in page at `app/(auth)/sign-in/page.tsx`
+  - [x] Subtask 5.2: Create sign-out page at `app/(auth)/sign-out/page.tsx`
   - [ ] Subtask 5.3: Test authentication flows end-to-end
 
-- [ ] Task 6: Verify implementation (AC1-AC4)
-  - [ ] Subtask 6.1: Run repo quality checks: `pnpm lint` and `pnpm type-check`
+- [x] Task 6: Verify implementation (AC1-AC4)
+  - [x] Subtask 6.1: Run repo quality checks: `pnpm lint` and `pnpm type-check`
   - [ ] Subtask 6.2: Test sign-in flow with dummy credentials
   - [ ] Subtask 6.3: Test session persistence across requests
 
@@ -189,3 +189,43 @@ At implementation time, verify with:
 - `artifacts/implementation-artifacts/stories/1-3-setup-prisma-schema-and-database-connection.md` — Prisma foundation
 - `artifacts/implementation-artifacts/stories/1-4-setup-orpc-api-foundation.md` — oRPC foundation with protected procedures
 - Auth.js docs via Context7 (`vercel/next-auth` with version) — JWT configuration, credentials provider, session handling
+
+## File List
+
+```text
+package.json                    # added: next-auth@beta, bcryptjs
+proxy.ts                     # created: route protection (Next.js 16+ proxy pattern)
+app/
+├── (auth)/
+│   ├── sign-in/
+│   │   ├── page.tsx           # sign-in page with Suspense
+│   │   └── sign-in-form.tsx    # sign-in form component
+│   └── sign-out/
+│       ├── page.tsx            # sign-out page
+│       └── sign-out-form.tsx  # sign-out confirmation
+└── api/
+    └── auth/
+        └── [...nextauth]/
+            └── route.ts         # auth route handler (GET/POST)
+
+server/
+├── auth/
+│   ├── auth.config.ts          # Auth.js configuration (JWT, credentials provider)
+│   ├── auth.guards.ts         # requireAuth, getOptionalAuth, isAuthenticated
+│   ├── auth.session.ts       # session utility re-exports
+│   ├── refresh-token.service.ts  # refresh token CRUD operations
+│   └── next-auth.d.ts        # type augmentations
+
+tests/
+├── unit/
+│   ├── auth.guards.spec.ts   # auth guards unit tests
+│   └── refresh-token.service.spec.ts  # token service unit tests
+└── vitest-setup.ts           # test environment setup
+
+vitest.config.ts              # updated: test config with alias
+biome.json                  # updated: lint includes proper paths
+```
+
+## Change Log
+
+- Date: 2026-04-25: Implemented Auth.js v5 with JWT strategy, credentials provider, token refresh with rotation, auth guards, sign-in/sign-out pages, and route middleware

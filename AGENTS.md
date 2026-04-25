@@ -260,5 +260,5 @@ individual-finance/
 
 ### Component Guidelines
 
-- Prefer using shadcn/ui components for consistency, but create custom components in `components/` when needed
-- Create components via `magic mcp` for spinning up creating a modern component.
+- Prefer using shadcn/ui components for consistency, but create custom components in `components/` when needed, install any shadcn components via `pnpm shadcn@latest add <component-name>` for new components.
+- If no dedicated components are found in shadcn library, create custom components via `magic mcp` for spinning up creating a modern component.

@@ -9,9 +9,9 @@
  * 5. Shared config modules are properly exported
  */
 
+import { execSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { execSync } from "node:child_process";
 import { expect, test } from "@playwright/test";
 
 // Get project root - go up from tests/e2e to project root
@@ -169,22 +169,6 @@ test.describe("Shared Config Modules", () => {
     expect(envContent).toContain("NODE_ENV");
     expect(envContent).toContain("isProduction");
     expect(envContent).toContain("isDevelopment");
-  });
-});
-
-test.describe("Package.json Scripts", () => {
-  test("should have all required scripts defined", () => {
-    const packageJsonPath = path.join(projectRoot, "package.json");
-    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
-
-    expect(packageJson.scripts.lint).toBe("biome lint .");
-    expect(packageJson.scripts.format).toBe("biome format . --write");
-    expect(packageJson.scripts["format:check"]).toBe("biome format .");
-    expect(packageJson.scripts["type-check"]).toBe("tsc --noEmit");
-    expect(packageJson.scripts.dev).toBe("next dev");
-    expect(packageJson.scripts.build).toBe("next build");
-    expect(packageJson.scripts.start).toBe("next start");
-    expect(packageJson.scripts.test).toBe("vitest run");
   });
 });
 

@@ -21,7 +21,7 @@ export const health = os
  * Protected test - checks for authorization header
  */
 export const testProtected = os
-  .use(async ({ context }, input, next) => {
+  .use(async ({ context }, _input, next) => {
     const headers = context as unknown as { headers?: Headers }
     const auth = headers.headers?.get('authorization')
     if (!auth) {
