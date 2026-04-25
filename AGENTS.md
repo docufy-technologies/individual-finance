@@ -187,7 +187,9 @@ individual-finance/
 
 - **Linting:** Biome (`pnpm lint`)
 - **Formatting:** Biome (`pnpm format`)
-- Run both before committing
+- Run both `pnpm lint` and `pnpm format` before committing
+- Always include .route with method and description for oRPC route handlers for better OpenAPI generation and documentation.
+- Always include .output with expected output type for oRPC route handlers to ensure consistent API contracts and better type safety across client/server boundaries.
 
 ### Commenting
 
@@ -235,7 +237,7 @@ individual-finance/
 
 - Unit/integration tests: co-located as `*.test.ts`
 - E2E tests: `tests/e2e/` with Playwright
-- Run `pnpm test` before pushing
+- Run `pnpm test` and `pnpm test:e2e` before pushing
 
 ### Environment Variables
 

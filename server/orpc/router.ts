@@ -1,10 +1,15 @@
 import { os } from '@orpc/server'
+import z from 'zod'
 
 /**
  * Simple health check procedure - public
  */
 export const health = os
 .route({method:'GET', description: 'Health check endpoint'})
+.output(z.object({
+  status: z.string(),
+  timestamp: z.string(),
+}))
 .handler(async () => {
   return {
     status: 'ok',
@@ -27,6 +32,11 @@ export const testProtected = os
     }
     return next({ context })
   })
+  .route({method:'POST', description: 'Protected test endpoint'})
+  .output(z.object({
+    message: z.string(),
+    timestamp: z.string(),
+  }))
   .handler(async () => {
     return {
       message: 'Protected procedure executed successfully',
