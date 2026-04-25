@@ -34,11 +34,11 @@ test.describe("oRPC API Foundation", () => {
       expect(response.status()).toBe(404);
     });
 
-    test("should return 405 for GET method (not allowed)", async ({ request }) => {
-      // oRPC v1 only supports POST by default
+    test("should return 200 for health endpoint with GET", async ({ request }) => {
+      // Health endpoint supports GET method
       const response = await request.get(`${RPC_URL}/health`);
 
-      expect(response.status()).toBe(405);
+      expect(response.status()).toBe(200);
     });
   });
 
