@@ -254,6 +254,8 @@ individual-finance/
 - Do not create files that matches with stories name. Example:
   - Wrong: `story-1-2-environment-config.specs.ts`
   - Correct: `environment-config.specs.ts`
+  - Wrong: `story-1-5-authjs-foundation.specs.ts`
+  - Correct: `authjs-foundation.specs.ts`
 
 ### Component Guidelines
 
