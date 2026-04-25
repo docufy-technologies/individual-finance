@@ -1,5 +1,9 @@
 # Story 1.4: Setup oRPC API Foundation
 
+**Optimized:** Yes
+**Last Optimized:** 2026-04-25
+**Reason:** Updated to match latest oRPC Next.js adapter patterns (app/rpc/[[...rest]]/route.ts, lib/orpc.ts, lib/orpc.server.ts) and PRD logging requirements
+
 Status: ready-for-dev
 
 ## Story
@@ -13,8 +17,8 @@ so that the application has a typed, contract-driven API surface with protected 
 AC1: oRPC Route Setup
 
 - Given the project requires oRPC for API design,
-- When I create the API route at `app/api/orpc/route.ts` following the latest oRPC documentation,
-- Then oRPC handles all requests to `/api/orpc` with typed procedure contracts,
+- When I create the API route at `app/rpc/[[...rest]]/route.ts` following the latest oRPC documentation (note: uses catch-all segment `[[...rest]]`),
+- Then oRPC handles all requests to `/rpc` with typed procedure contracts,
 - And the route handler is configured with proper HTTP method support (GET, POST, PUT, PATCH, DELETE).
 
 AC2: Middleware Chain Configuration
@@ -38,14 +42,14 @@ AC3: API Verification
 ## Tasks / Subtasks
 
 - [ ] Task 1: Install and configure oRPC for this project (AC1)
-  - [ ] Subtask 1.1: Add oRPC dependencies using pnpm
+  - [ ] Subtask 1.1: Add oRPC dependencies using pnpm (`@orpc/server`, `@orpc/client`)
   - [ ] Subtask 1.2: Review architecture's oRPC patterns and folder structure requirements
   - [ ] Subtask 1.3: Create the oRPC router structure in `server/orpc/router.ts`
 
 - [ ] Task 2: Create the oRPC API route handler (AC1)
-  - [ ] Subtask 2.1: Create `app/api/orpc/route.ts` with proper HTTP method handling
+  - [ ] Subtask 2.1: Create `app/rpc/[[...rest]]/route.ts` with proper HTTP method handling (note: uses catch-all segment `[[...rest]]`)
   - [ ] Subtask 2.2: Configure oRPC with the router and context
-  - [ ] Subtask 2.3: Export the oRPC handler for the Next.js App Router
+  - [ ] Subtask 2.3: Export the oRPC handler for the Next.js App Router (GET, POST, PUT, PATCH, DELETE, HEAD)
 
 - [ ] Task 3: Implement middleware chain (AC2)
   - [ ] Subtask 3.1: Create trace middleware for correlation ID propagation (`server/orpc/middleware/trace.middleware.ts`)
@@ -63,16 +67,30 @@ AC3: API Verification
   - [ ] Subtask 5.2: Create error mapping from domain errors to contract format
   - [ ] Subtask 5.3: Ensure all errors include traceId
 
-- [ ] Task 6: Add health check or test procedure (AC3)
-  - [ ] Subtask 6.1: Add a simple test procedure to verify oRPC is working
-  - [ ] Subtask 6.2: Verify traceId appears in all responses
-  - [ ] Subtask 6.3: Test that protectedProcedure rejects unauthenticated requests
+- [ ] Task 6: Add client configuration for frontend (AC3)
+  - [ ] Subtask 6.1: Create `server/orpc/client.ts` with RPCLink configuration
+  - [ ] Subtask 6.2: Export typed client for use in React components
+  - [ ] Subtask 6.3: Ensure client works in both browser and server environments
 
-- [ ] Task 7: Run repo quality checks
-  - [ ] Subtask 7.1: Run `pnpm lint` and fix any issues
-  - [ ] Subtask 7.2: Run `pnpm type-check` and fix any issues
+- [ ] Task 7: Add health check or test procedure (AC3)
+  - [ ] Subtask 7.1: Add a simple test procedure to verify oRPC is working
+  - [ ] Subtask 7.2: Verify traceId appears in all responses
+  - [ ] Subtask 7.3: Test that protectedProcedure rejects unauthenticated requests
+
+- [ ] Task 8: Run repo quality checks
+  - [ ] Subtask 8.1: Run `pnpm lint` and fix any issues
+  - [ ] Subtask 8.2: Run `pnpm type-check` and fix any issues
 
 ## Dev Notes
+
+### Optimization Updates (2026-04-25)
+
+Based on latest oRPC Next.js adapter documentation:
+
+1. **Route Handler Pattern:** Use `RPCHandler` from `@orpc/server/fetch` (not `@orpc/server/node`) for App Router
+2. **HTTP Methods:** Export all methods (HEAD, GET, POST, PUT, PATCH, DELETE) from the route handler
+3. **Server-Side Client:** Use `createRouterClient` with `globalThis` pattern for SSR optimization
+4. **Client Link:** Use `RPCLink` with async headers function for both browser and server environments
 
 ### Scope Guardrails
 
@@ -98,13 +116,73 @@ Use this precedence when artifacts disagree:
 - All business logic must stay in `server/domains/*`, not in the API layer.
 - Use current oRPC patterns (check Context7 for latest API).
 
+**Key Pattern (current):**
+
+```typescript
+// app/rpc/[[...rest]]/route.ts
+import { RPCHandler } from '@orpc/server/fetch'
+import { onError } from '@orpc/server'
+
+const handler = new RPCHandler(router, {
+  interceptors: [
+    onError((error) => {
+      console.error(error)
+    }),
+  ],
+})
+
+async function handleRequest(request: Request) {
+  const { response } = await handler.handle(request, {
+    prefix: '/rpc',
+    context: {},
+  })
+
+  return response ?? new Response('Not found', { status: 404 })
+}
+
+export const HEAD = handleRequest
+export const GET = handleRequest
+export const POST = handleRequest
+export const PUT = handleRequest
+export const PATCH = handleRequest
+export const DELETE = handleRequest
+```
+
+**Note:** The route is at `app/rpc/[[...rest]]/route.ts` which serves `/rpc` (not `/api/orpc`).
+
 ### Middleware Requirements
 
 The middleware chain must include:
 
 1. **Trace middleware**: Generate or propagate traceId correlation identifier for every request
 2. **Auth middleware**: Check session context for protected procedures
-3. **Error map middleware**: Transform domain errors to typed contract format
+3. **Rate limit middleware**: Apply global baseline + endpoint-specific limits for finance mutations
+4. **Idempotency middleware**: Enforce idempotency key for critical money write endpoints
+5. **Error map middleware**: Transform domain errors to typed contract format
+
+### PRD Compliance (NFRs)
+
+Per the PRD, the following non-functional requirements must be implemented:
+
+- **NFR2** (Ledger write p95 ≤ 800ms): Ensure middleware chain doesn't add unacceptable latency
+- **NFR5** (TLS): Handled by deployment (Vercel), not in app code
+- **NFR6** (Encryption at rest): Handled by database (Neon), not in app code
+- **NFR7** (Server-side PBAC): Enforced in domain services, not middleware (later story)
+- **NFR8** (Unauthorized denial): protectedProcedure rejects with UNAUTHORIZED error
+- **NFR9** (Security event logging): Security events logged with traceId
+- **NFR28** (Logging format): All events logged with format:
+  ```
+  [timestamp] [log level] function [function_name], variable [variable_name] changed its value to [new_value]
+  ```
+
+### PRD Logging Requirements (NFR28)
+
+Per PRD requirement NFR28, all events must be logged with timestamps:
+```
+[timestamp] [log level] function [function_name], variable [variable_name] changed its value to [new_value]
+```
+
+This must be implemented in the trace middleware.
 
 ### Error Contract Format
 
@@ -130,15 +208,18 @@ interface ErrorContract {
 Create or modify only the files needed for this story:
 
 ```text
-app/api/orpc/
-└── route.ts                 # oRPC route handler
+app/rpc/[[...rest]]/
+└── route.ts                 # oRPC route handler (App Router with catch-all segment)
+
+lib/
+├── orpc.ts                  # Client-side oRPC client with RPCLink and SSR fallback
+└── orpc.server.ts           # Server-side client with createRouterClient (server-only)
 
 server/orpc/
 ├── router.ts                # Main oRPC router with procedures
 ├── context.ts               # Context factory for oRPC
-├── contracts/               # Type contracts (if needed)
 └── middleware/
-    ├── trace.middleware.ts       # TraceId correlation
+    ├── trace.middleware.ts       # TraceId correlation (PRD NFR28 compliant)
     ├── auth.middleware.ts        # Auth validation
     └── error-map.middleware.ts   # Error mapping
 
@@ -147,7 +228,64 @@ shared/
     ├── error-codes.ts            # Error code constants
     └── to-client-error.ts        # Error transformation
 
-package.json                   # Add oRPC dependencies if needed
+package.json                   # Add oRPC dependencies
+instrumentation.ts            # Register server-side client for SSR (if needed)
+app/
+└── layout.tsx                 # Import orpc.server for pre-rendering (if needed)
+```
+
+### Client Configuration Patterns
+
+Per official oRPC Next.js adapter docs, use these exact patterns:
+
+**1. Client (`lib/orpc.ts`):**
+```typescript
+import type { RouterClient } from '@orpc/server'
+import { RPCLink } from '@orpc/client/fetch'
+import { createORPCClient } from '@orpc/client'
+
+declare global {
+  var $client: RouterClient<typeof router> | undefined
+}
+
+const link = new RPCLink({
+  url: () => {
+    if (typeof window === 'undefined') {
+      throw new Error('RPCLink is not allowed on the server side.')
+    }
+    return `${window.location.origin}/rpc`
+  },
+})
+
+/**
+ * Fallback to client-side client if server-side client is not available.
+ */
+export const client: RouterClient<typeof router> = globalThis.$client ?? createORPCClient(link)
+```
+
+**2. Server-Side Client (`lib/orpc.server.ts`):**
+```typescript
+import 'server-only'
+import { headers } from 'next/headers'
+import { createRouterClient } from '@orpc/server'
+
+globalThis.$client = createRouterClient(router, {
+  context: async () => ({
+    headers: await headers(),
+  }),
+})
+```
+
+**3. Instrumentation (`instrumentation.ts`):**
+```typescript
+export async function register() {
+  await import('./lib/orpc.server')
+}
+```
+
+**4. Layout Import (`app/layout.tsx`):**
+```typescript
+import '../lib/orpc.server' // for pre-rendering
 ```
 
 ### Previous Story Intelligence
@@ -188,7 +326,8 @@ At implementation time, verify with:
 
 ### Current Repo State Relevant to This Story
 
-- `app/api/` exists but no oRPC route yet
+- `app/` directory exists but no oRPC route yet
+- Note: oRPC route should be at `app/rpc/[[...rest]]/route.ts` (serves `/rpc`, not `/api/orpc`)
 - `server/` directory exists with `db/prisma.ts` from Story 1.3
 - `shared/config/env.ts` exists with validation patterns
 - `shared/errors/` directory exists or should be created
