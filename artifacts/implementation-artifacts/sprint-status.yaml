@@ -47,7 +47,7 @@ development_status:
   1-1-initialize-nextjs-project-scaffold: done
   1-2-configure-development-environment-and-tools: done
   1-3-setup-prisma-schema-and-database-connection: done
-  1-4-setup-orpc-api-foundation: backlog
+  1-4-setup-orpc-api-foundation: ready-for-dev
   1-5-setup-authjs-authentication-foundation: backlog
   epic-1-retrospective: optional
 
