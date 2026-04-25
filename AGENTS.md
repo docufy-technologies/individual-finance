@@ -158,21 +158,18 @@ individual-finance/
 │   └── migrations/
 ├── public/
 │   └── assets/
-├── tests/
-│   ├── e2e/
-│   │   ├── personal-flow.spec.ts
-│   │   ├── group-emergency-withdraw.spec.ts
-│   │   ├── goal-implementation.spec.ts
-│   │   └── dispute-trace.spec.ts
-│   ├── integration/
-│   │   ├── orpc/
-│   │   ├── policies/
-│   │   └── domains/
-│   └── fixtures/
-└── docs/
-    ├── architecture/
-    ├── api/
-    └── runbooks/
+└── tests/
+    ├── e2e/
+    │   ├── personal-flow.spec.ts
+    │   ├── group-emergency-withdraw.spec.ts
+    │   ├── goal-implementation.spec.ts
+    │   └── dispute-trace.spec.ts
+    ├── integration/
+    │   ├── orpc/
+    │   ├── policies/
+    │   └── domains/
+    └── fixtures/
+
 ```
 
 ## Special Instructions
