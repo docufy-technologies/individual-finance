@@ -3,7 +3,9 @@ import { os } from '@orpc/server'
 /**
  * Simple health check procedure - public
  */
-export const health = os.handler(async () => {
+export const health = os
+.route({method:'GET', description: 'Health check endpoint'})
+.handler(async () => {
   return {
     status: 'ok',
     timestamp: new Date().toISOString(),

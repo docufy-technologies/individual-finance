@@ -21,7 +21,7 @@ test.describe("oRPC API Foundation", () => {
     test("should return 200 for health endpoint with POST", async ({
       request,
     }) => {
-      const response = await request.post(`${RPC_URL}/health`);
+      const response = await request.get(`${RPC_URL}/health`);
 
       expect(response.status()).toBe(200);
     });
@@ -84,7 +84,7 @@ test.describe("oRPC API Foundation", () => {
 
   test.describe("AC3: API Verification", () => {
     test("should return valid health response structure", async ({ request }) => {
-      const response = await request.post(`${RPC_URL}/health`);
+      const response = await request.get(`${RPC_URL}/health`);
       const body = await response.json();
 
       // Response is wrapped in "json" property
@@ -94,14 +94,14 @@ test.describe("oRPC API Foundation", () => {
     });
 
     test("should return JSON content type", async ({ request }) => {
-      const response = await request.post(`${RPC_URL}/health`);
+      const response = await request.get(`${RPC_URL}/health`);
 
       const contentType = response.headers()["content-type"];
       expect(contentType).toContain("application/json");
     });
 
     test("should handle request with body data", async ({ request }) => {
-      const response = await request.post(`${RPC_URL}/health`, {
+      const response = await request.get(`${RPC_URL}/health`, {
         data: {
           test: "data",
         },
