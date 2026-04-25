@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Figtree, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import "@/lib/orpc.server";
 
 const figtree = Figtree({ subsets: ["latin"], variable: "--font-sans" });
 
